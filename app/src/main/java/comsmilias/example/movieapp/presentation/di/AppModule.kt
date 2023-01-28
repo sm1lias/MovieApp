@@ -14,7 +14,7 @@ import comsmilias.example.movieapp.data.repository.movie.datasource.MoviesCacheD
 import comsmilias.example.movieapp.data.repository.movie.datasourceImpl.MovieCacheDatasourceImpl
 import comsmilias.example.movieapp.data.repository.movie.datasourceImpl.MovieLocalDataSourceImpl
 import comsmilias.example.movieapp.data.repository.movie.datasourceImpl.MovieRemoteDatasourceImpl
-import comsmilias.example.movieapp.domain.model.repository.MovieRepository
+import comsmilias.example.movieapp.domain.repository.MovieRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

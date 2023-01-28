@@ -1,32 +1,39 @@
 package comsmilias.example.movieapp.presentation.movie
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import comsmilias.example.movieapp.domain.model.Movie
-import comsmilias.example.movieapp.domain.model.repository.MovieRepository
+import comsmilias.example.movieapp.common.Resource
+import comsmilias.example.movieapp.domain.usecase.GetMovieUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class MovieFragmentViewModel @Inject constructor(
-    private val repository: MovieRepository
+    private val getMovieUseCase: GetMovieUseCase
 ) : ViewModel() {
 
-    private val _movieLiveData = MutableLiveData<Movie>()
+    private val _state = MutableStateFlow<MovieState>(MovieState())
+    val state: StateFlow<MovieState> = _state
 
-    val movieLiveData: LiveData<Movie>
-        get() = _movieLiveData
 
     fun getMovie(id: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val movie = repository.getMovie(id)
-            withContext(Dispatchers.Main){
-                _movieLiveData.value = movie
+        viewModelScope.launch {
+            getMovieUseCase(id).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _state.value = MovieState(movie = result.data)
+                    }
+                    is Resource.Loading -> {
+                        _state.value = MovieState(isLoading = true)
+                    }
+                    is Resource.Error ->
+                        _state.value = MovieState(
+                            error = result.message ?: "An unexpected error occurred"
+                        )
+                }
             }
         }
     }

@@ -5,12 +5,17 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import comsmilias.example.movieapp.R
+import comsmilias.example.movieapp.common.Resource
 import comsmilias.example.movieapp.databinding.FragmentFirstBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
@@ -40,19 +45,29 @@ class MoviesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
 
-        viewModel.data.observe(viewLifecycleOwner){ data ->
-            data?.let { movies ->
-                moviesAdapter.setMovieList(movies)
-                moviesAdapter.notifyDataSetChanged()
-            }
+        lifecycleScope.launch {
+            viewModel.state.collect(){ state ->
+                if (state.isLoading){
+                    binding.swipeRefresh.isRefreshing = true
+                } else if (state.error.isNotEmpty()){
+                    binding.swipeRefresh.isRefreshing = false
+                    Toast.makeText(requireContext(), state.error, Toast.LENGTH_LONG).show()
+                } else {
+                    binding.swipeRefresh.isRefreshing = false
+                    state.movies?.let { movies ->
+                        moviesAdapter.setMovieList(movies)
+                        moviesAdapter.notifyDataSetChanged()
+                    }
+                }
 
+            }
         }
     }
 
     private fun initRecyclerView() {
         binding.rvAdapter.layoutManager = GridLayoutManager(requireContext(), 2)
         moviesAdapter = MoviesAdapter(){ position ->
-            viewModel.data.value?.get(position)?.id?.let { movieId ->
+            viewModel.state.value.movies?.get(position)?.id?.let { movieId ->
                 val bundle = Bundle().apply {
                     putInt("id_of_item", movieId)
                 }
@@ -64,7 +79,7 @@ class MoviesFragment : Fragment() {
 
         binding.apply {
             swipeRefresh.setOnRefreshListener {
-                viewModel.getRefreshMovies()
+                viewModel.getMovies(true)
                 swipeRefresh.isRefreshing = false
             }
         }
