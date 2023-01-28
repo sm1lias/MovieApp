@@ -47,10 +47,6 @@ class MoviesFragment : Fragment() {
             }
 
         }
-
-//        binding.buttonFirst.setOnClickListener {
-//            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
-//        }
     }
 
     private fun initRecyclerView() {
@@ -65,12 +61,13 @@ class MoviesFragment : Fragment() {
 
         }
         binding.rvAdapter.adapter = moviesAdapter
-//        binding.rvAdapter.addItemDecoration(
-//            DividerItemDecoration(
-//                binding.rvAdapter.context,
-//                DividerItemDecoration.VERTICAL
-//            )
-//        )
+
+        binding.apply {
+            swipeRefresh.setOnRefreshListener {
+                viewModel.getRefreshMovies()
+                swipeRefresh.isRefreshing = false
+            }
+        }
     }
 
     override fun onDestroyView() {

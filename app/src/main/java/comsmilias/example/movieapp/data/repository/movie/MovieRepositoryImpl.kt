@@ -28,17 +28,9 @@ class MovieRepositoryImpl @Inject constructor(
         return movieRemoteDatasource.getMovies()
     }
 
-    private suspend fun getMoviesFromDb(): List<Movie> {
+    private suspend fun getMoviesFromDb(refresh: Boolean): List<Movie> {
         lateinit var movieList: List<Movie>
-
-        try {
-            movieList = movieLocalDataSource.getMoviesFromDb()
-        } catch (e: Exception) {
-            Timber.i(e.message.toString())
-        }
-        if (movieList.isNotEmpty()) {
-            return movieList
-        } else {
+        if (refresh) {
             val movies = getMoviesFromApi()
             if (movies is Resource.Success) {
                 movies.data?.let { list ->
@@ -46,23 +38,45 @@ class MovieRepositoryImpl @Inject constructor(
                     movieLocalDataSource.saveMoviesToDb(list)
                 }
             }
+        } else {
+            try {
+                movieList = movieLocalDataSource.getMoviesFromDb()
+            } catch (e: Exception) {
+                Timber.i(e.message.toString())
+            }
+            if (movieList.isNotEmpty()) {
+                return movieList
+            } else {
+                val movies = getMoviesFromApi()
+                if (movies is Resource.Success) {
+                    movies.data?.let { list ->
+                        movieList = list
+                        movieLocalDataSource.saveMoviesToDb(list)
+                    }
+                }
+            }
         }
         return movieList
     }
 
-    private suspend fun getMoviesFromCache(refresh: Boolean): List<Movie>{
+    private suspend fun getMoviesFromCache(refresh: Boolean): List<Movie> {
         lateinit var movieList: List<Movie>
 
-        try {
-            movieList = moviesCacheDataSource.getMoviesFromCache()
-        } catch (e:Exception) {
-            Timber.i(e.message.toString())
-        }
-        if (movieList.isNotEmpty()){
-            return movieList
-        } else {
-            movieList = getMoviesFromDb()
+        if (refresh) {
+            movieList = getMoviesFromDb(true)
             moviesCacheDataSource.saveMoviesToCache(movieList)
+        } else {
+            try {
+                movieList = moviesCacheDataSource.getMoviesFromCache()
+            } catch (e: Exception) {
+                Timber.i(e.message.toString())
+            }
+            if (movieList.isNotEmpty()) {
+                return movieList
+            } else {
+                movieList = getMoviesFromDb(false)
+                moviesCacheDataSource.saveMoviesToCache(movieList)
+            }
         }
 
         return movieList

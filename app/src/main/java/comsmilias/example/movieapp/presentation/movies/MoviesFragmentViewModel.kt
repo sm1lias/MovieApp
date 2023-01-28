@@ -18,6 +18,12 @@ class MoviesFragmentViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            data.value = repository.getMovies(false)
+        }
+    }
+
+    fun getRefreshMovies(){
+        viewModelScope.launch {
             data.value = repository.getMovies(true)
         }
     }
