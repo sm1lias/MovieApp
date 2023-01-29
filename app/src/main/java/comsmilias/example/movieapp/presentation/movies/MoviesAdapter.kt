@@ -2,6 +2,7 @@ package comsmilias.example.movieapp.presentation.movies
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import comsmilias.example.movieapp.databinding.MovieItemBinding
@@ -28,9 +29,12 @@ class MoviesAdapter(private val onItemClick: (Int) -> Unit): RecyclerView.Adapte
 
     override fun getItemCount() = moviesList.size
 
-    fun setMovieList(list: List<Movie>){
+    fun setMovieList(newData: List<Movie>) {
+        val diffCallback = MoviesDiffUtilCallback(moviesList, newData)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
         moviesList.clear()
-        moviesList.addAll(list)
+        moviesList.addAll(newData)
+        diffResult.dispatchUpdatesTo(this)
     }
 
 }
@@ -41,7 +45,7 @@ class MyViewHolder(
 ): RecyclerView.ViewHolder(binding.root) {
 
     init {
-        binding.root?.setOnClickListener {
+        binding.root.setOnClickListener {
             onItemClicked(adapterPosition)
         }
     }

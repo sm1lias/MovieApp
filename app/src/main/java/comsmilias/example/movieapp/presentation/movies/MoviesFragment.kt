@@ -46,17 +46,17 @@ class MoviesFragment : Fragment() {
         initRecyclerView()
 
         lifecycleScope.launch {
-            viewModel.state.collect(){ state ->
-                if (state.isLoading){
+            viewModel.state.collect() { state ->
+                if (state.isLoading) {
                     binding.swipeRefresh.isRefreshing = true
-                } else if (state.error.isNotEmpty()){
-                    binding.swipeRefresh.isRefreshing = false
-                    Toast.makeText(requireContext(), state.error, Toast.LENGTH_LONG).show()
                 } else {
                     binding.swipeRefresh.isRefreshing = false
+                    if (state.error.isNotEmpty()) {
+                        Toast.makeText(requireContext(), state.error, Toast.LENGTH_SHORT).show()
+                        viewModel.clearError()
+                    }
                     state.movies?.let { movies ->
                         moviesAdapter.setMovieList(movies)
-                        moviesAdapter.notifyDataSetChanged()
                     }
                 }
 
@@ -66,7 +66,7 @@ class MoviesFragment : Fragment() {
 
     private fun initRecyclerView() {
         binding.rvAdapter.layoutManager = GridLayoutManager(requireContext(), 2)
-        moviesAdapter = MoviesAdapter(){ position ->
+        moviesAdapter = MoviesAdapter() { position ->
             viewModel.state.value.movies?.get(position)?.id?.let { movieId ->
                 val bundle = Bundle().apply {
                     putInt("id_of_item", movieId)

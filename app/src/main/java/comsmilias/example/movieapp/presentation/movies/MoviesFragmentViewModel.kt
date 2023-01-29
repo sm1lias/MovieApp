@@ -19,7 +19,8 @@ class MoviesFragmentViewModel @Inject constructor(
     val state: StateFlow<MoviesListState> = _state
 
     init {
-        getMovies()
+        if (state.value.movies == null)
+            getMovies()
     }
 
     fun getMovies(refresh: Boolean = false) {
@@ -31,7 +32,8 @@ class MoviesFragmentViewModel @Inject constructor(
                     }
                     is Resource.Error -> {
                         _state.value = MoviesListState(
-                            error = result.message ?: "An unexpected error occurred"
+                            error = result.message ?: "An unexpected error occurred",
+                            movies = result.data
                         )
                     }
                     is Resource.Loading -> {
@@ -40,5 +42,9 @@ class MoviesFragmentViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun clearError(){
+        _state.value.error = ""
     }
 }

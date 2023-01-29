@@ -18,10 +18,6 @@ class MovieRepositoryImpl @Inject constructor(
         return getMoviesFromCache(refresh)
     }
 
-    override suspend fun getMovie(id: Int): Resource<Movie> {
-        return Resource.Success(movieLocalDataSource.getMovieFromDb(id))
-    }
-
 
     private suspend fun getMoviesFromApi(): Resource<List<Movie>> {
         return movieRemoteDatasource.getMovies()
@@ -37,7 +33,12 @@ class MovieRepositoryImpl @Inject constructor(
                     movieLocalDataSource.saveMoviesToDb(list)
                 }
             } else {
-                return movies
+                try {
+                    return Resource.Error(message = movies.message.toString(),
+                        data = movieLocalDataSource.getMoviesFromDb())
+                } catch (e: Exception) {
+                    Timber.i(e.message.toString())
+                }
             }
         } else {
             try {
@@ -70,6 +71,15 @@ class MovieRepositoryImpl @Inject constructor(
                 movieList.data?.let {
                     moviesCacheDataSource.saveMoviesToCache(it)
                 }
+            else if (movieList is Resource.Error) {
+
+                try {
+                    movieList = Resource.Error(message = movieList.message.toString(),
+                        data = moviesCacheDataSource.getMoviesFromCache())
+                } catch (e: Exception) {
+                    Timber.i(e.message.toString())
+                }
+            }
         } else {
             try {
                 movieList = Resource.Success(moviesCacheDataSource.getMoviesFromCache())

@@ -1,14 +1,15 @@
 package comsmilias.example.movieapp.presentation.movie
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.load
+import comsmilias.example.movieapp.common.Utils
 import comsmilias.example.movieapp.databinding.FragmentSecondBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -46,11 +47,17 @@ class MovieFragment : Fragment() {
         lifecycleScope.launch {
             viewModel.state.collect() { state ->
                 if (state.isLoading) {
+                    //TODO
                 } else if (state.error.isNotEmpty()) {
                     Toast.makeText(requireContext(), state.error, Toast.LENGTH_LONG).show()
                 } else {
                     state.movie?.let {
-                        binding.imageView.load(it.imageUrl)
+                        binding.apply {
+                            imageView.load(it.imageUrl)
+                            txtTitle.text = it.name
+                            txtRating.text = it.rating.toString()
+                            txtDescription.text = Utils.removeTagsFromString(it.description)
+                        }
                     }
                 }
 
