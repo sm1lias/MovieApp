@@ -7,14 +7,6 @@ import comsmilias.example.movieapp.common.Constants
 import comsmilias.example.movieapp.data.db.MovieDao
 import comsmilias.example.movieapp.data.db.MovieDatabase
 import comsmilias.example.movieapp.data.remote.MoviesApi
-import comsmilias.example.movieapp.data.repository.movie.MovieRepositoryImpl
-import comsmilias.example.movieapp.data.repository.movie.datasource.MovieLocalDataSource
-import comsmilias.example.movieapp.data.repository.movie.datasource.MovieRemoteDatasource
-import comsmilias.example.movieapp.data.repository.movie.datasource.MoviesCacheDataSource
-import comsmilias.example.movieapp.data.repository.movie.datasourceImpl.MovieCacheDatasourceImpl
-import comsmilias.example.movieapp.data.repository.movie.datasourceImpl.MovieLocalDataSourceImpl
-import comsmilias.example.movieapp.data.repository.movie.datasourceImpl.MovieRemoteDatasourceImpl
-import comsmilias.example.movieapp.domain.repository.MovieRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -66,35 +58,4 @@ object AppModule {
             .movieDao()
     }
 
-    @Provides
-    @Singleton
-    fun provideMovieLocalDataSource(movieDao: MovieDao): MovieLocalDataSource {
-        return MovieLocalDataSourceImpl(movieDao)
-    }
-
-    @Provides
-    @Singleton
-    fun provideMovieCacheDataSource(): MoviesCacheDataSource {
-        return MovieCacheDatasourceImpl()
-    }
-
-    @Provides
-    @Singleton
-    fun provideMovieRemoteDataSource(api: MoviesApi): MovieRemoteDatasource {
-        return MovieRemoteDatasourceImpl(api)
-    }
-
-    @Provides
-    @Singleton
-    fun provideMovieRepository(
-        movieLocalDataSource: MovieLocalDataSource,
-        movieRemoteDatasource: MovieRemoteDatasource,
-        moviesCacheDataSource: MoviesCacheDataSource
-    ): MovieRepository {
-        return MovieRepositoryImpl(
-            movieLocalDataSource,
-            movieRemoteDatasource,
-            moviesCacheDataSource
-        )
-    }
 }
